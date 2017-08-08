@@ -1,14 +1,15 @@
 #ifndef ColorSensor_h
 #define ColorSensor_h
 
+#include "Wire.h"
 #include "Adafruit_TCS34725.h"
 
 class ColorSensor
 {
   public:
-    ColorSensor(int ledPin);
+    ColorSensor();
     int begin();
-    void led( int on );
+    void led( boolean on );
     void look();
     int getRed();
     int getGreen();
@@ -17,7 +18,6 @@ class ColorSensor
     
   private:
     int _clr, _red, _green, _blue;
-    int _pin;
     Adafruit_TCS34725 tcs;
 };
 

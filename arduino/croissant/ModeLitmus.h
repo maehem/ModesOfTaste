@@ -6,17 +6,30 @@
 // Color Sensor
 // PiComm
 
-#include "Adafruit_TCS34725.h"
+#include "ColorSensor.h"
+#include "Noodle_DRV8838.h"
 
 class ModeLitmus
 {
   public:
-    ModeLitmus(int ledPin);
+    ModeLitmus(int enPin, int dirPin, int pwmPin, int saPin, int sbPin);
     int begin();
-    
+    void tick();  // Motor sensor turned.
+    int getTicks();
+    void forward(int spd);  // 0-255
+    void backward(int spd); // 0-255
+    void halt();
+    void doState();
+    boolean isFaulted();
+   
   private:
-    int _pin;
-    Adafruit_TCS34725 tcs;
+    ColorSensor _cs;
+    Noodle_DRV8838 _mot;
+    int stateCount;
+    int movTicks;
+    int state;
+    int rewindTicks;
+    int tasteCount;
 };
 
 #endif

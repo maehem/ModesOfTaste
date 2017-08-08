@@ -10,10 +10,8 @@
  */
  #include "ColorSensor.h"
  
-ColorSensor::ColorSensor( int ledPin)
+ColorSensor::ColorSensor()
 {
-  pinMode(ledPin, OUTPUT);
-  _pin = ledPin;
   _clr = 0;
   _red = 0;
   _green = 0;
@@ -23,6 +21,8 @@ ColorSensor::ColorSensor( int ledPin)
 
 int ColorSensor::begin()
 {
+  Wire.begin();
+  
   if (tcs.begin()) {
     Serial.println("Found color sensor");
     return 0;
@@ -31,47 +31,51 @@ int ColorSensor::begin()
     while (1); // halt!
     // return 1;
   }
+
+  led(false);
 }
 
-void ColorSensor::led( int on)
+void ColorSensor::led( boolean on)
 {
-  if (on) {
-    digitalWrite(_pin, HIGH);
-  }
+  tcs.setInterrupt(!on);
+
+//  if (on) {
+//    digitalWrite(_pin, HIGH);
+//  }
 }
 
 void ColorSensor::look()
 {
   uint16_t clr, red, green, blue;
 
-  tcs.setInterrupt(false);      // turn on LED
+  led(true);      // turn on LED
 
   delay(60);  // takes 50ms to read 
   
   tcs.getRawData(&red, &green, &blue, &clr);
 
-  tcs.setInterrupt(true);  // turn off LED
+  led(false);  // turn off LED
 
   _red = red;
   _green = green;
   _blue = blue;
   _clr = clr;
   
-  Serial.print("C:\t"); Serial.print(clr);
-  Serial.print("\tR:\t"); Serial.print(red);
-  Serial.print("\tG:\t"); Serial.print(green);
-  Serial.print("\tB:\t"); Serial.print(blue);
+//  Serial.print("C:\t"); Serial.print(clr);
+//  Serial.print("\tR:\t"); Serial.print(red);
+//  Serial.print("\tG:\t"); Serial.print(green);
+//  Serial.print("\tB:\t"); Serial.print(blue);
 
   // Figure out some basic hex code for visualization
-  uint32_t sum = clr;
-  float r, g, b;
-  r = red; r /= sum;
-  g = green; g /= sum;
-  b = blue; b /= sum;
-  r *= 256; g *= 256; b *= 256;
-  Serial.print("\t");
-  Serial.print((int)r, HEX); Serial.print((int)g, HEX); Serial.print((int)b, HEX);
-  Serial.println();
+  //uint32_t sum = clr;
+  //float r, g, b;
+  //r = red; r /= sum;
+  //g = green; g /= sum;
+  //b = blue; b /= sum;
+  //r *= 256; g *= 256; b *= 256;
+  //Serial.print("\t");
+  //Serial.print((int)r, HEX); Serial.print((int)g, HEX); Serial.print((int)b, HEX);
+  //Serial.println();
 
 }
 

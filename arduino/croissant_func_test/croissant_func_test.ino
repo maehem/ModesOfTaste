@@ -103,6 +103,7 @@ Adafruit_TCS34725 tcs;
   if (tcs.begin()) {
     Serial.println("Found color sensor");
     hasColorSensor = 1;
+    tcs.setInterrupt(true);      // turn off LED
   } else {
     Serial.println("No TCS34725 found ... check your connections");
     hasColorSensor = 0;
@@ -189,38 +190,42 @@ void loop() {
   
   // Test color sensor
   if ( hasColorSensor ) {
-    Serial.println( "Test Color Sensor");
+    Serial.println( "Test Color Sensor::  ");
     uint16_t clr, red, green, blue;
-  
-    tcs.setInterrupt(false);      // turn on LED
-  
-    delay(60);  // takes 50ms to read 
+
+    for (int i=0; i<10; i++) {
+      tcs.setInterrupt(false);      // turn on LED
     
-    tcs.getRawData(&red, &green, &blue, &clr);
-  
-    tcs.setInterrupt(true);  // turn off LED
-  
-//    _red = red;
-//    _green = green;
-//    _blue = blue;
-//    _clr = clr;
+      delay(60);  // takes 50ms to read 
+      
+      tcs.getRawData(&red, &green, &blue, &clr);
     
-    Serial.print("C:\t"); Serial.print(clr);
-    Serial.print("\tR:\t"); Serial.print(red);
-    Serial.print("\tG:\t"); Serial.print(green);
-    Serial.print("\tB:\t"); Serial.print(blue);
-  
-//    // Figure out some basic hex code for visualization
-//    uint32_t sum = clr;
-//    float r, g, b;
-//    r = red; r /= sum;
-//    g = green; g /= sum;
-//    b = blue; b /= sum;
-//    r *= 256; g *= 256; b *= 256;
-//    Serial.print("\t");
-//    Serial.print((int)r, HEX); Serial.print((int)g, HEX); Serial.print((int)b, HEX);
-//    Serial.println();   
+      tcs.setInterrupt(true);  // turn off LED
     
+  //    _red = red;
+  //    _green = green;
+  //    _blue = blue;
+  //    _clr = clr;
+      
+      Serial.print("\tC:\t"); Serial.print(clr);
+      Serial.print("\tR:\t"); Serial.print(red);
+      Serial.print("\tG:\t"); Serial.print(green);
+      Serial.print("\tB:\t"); Serial.print(blue);
+      Serial.println();
+    
+  //    // Figure out some basic hex code for visualization
+  //    uint32_t sum = clr;
+  //    float r, g, b;
+  //    r = red; r /= sum;
+  //    g = green; g /= sum;
+  //    b = blue; b /= sum;
+  //    r *= 256; g *= 256; b *= 256;
+  //    Serial.print("\t");
+  //    Serial.print((int)r, HEX); Serial.print((int)g, HEX); Serial.print((int)b, HEX);
+  //    Serial.println(); 
+
+      delay(500);
+    }
   } else {
     Serial.println( "Test Color Sensor  ==>   Not installed!");
   }

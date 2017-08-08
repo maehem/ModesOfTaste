@@ -41,6 +41,10 @@
 #include "ModeJuicer.h"
 #include "ModeLitmus.h"
 
+#include <avr/interrupt.h>
+
+volatile int value = 0;
+
 #define MODE_KLEPTO 0
 #define MODE_LITMUS 1
 #define MODE_JUICER 2
@@ -60,6 +64,7 @@
 #define SERVO_PIN_A 6
 #define SERVO_PIN_B 5
 
+// DON'T USE!
 #define CS_LED_PIN  4
 
 #define MOT_S1_PIN  7
@@ -78,7 +83,7 @@ int mode = 4;  // Overwritten once we read the mode pins.
 ModeBean mBean(SERVO_PIN_A);
 ModeJuicer mJuicer;
 ModeKlepto mKlepto;
-ModeLitmus mLitmus(CS_LED_PIN);
+ModeLitmus mLitmus(MOT_EN_PIN, MOT_NDIR_PIN, MOT_PWM_PIN, MOT_S1_PIN, MOT_S2_PIN);
 
 void setup() {
   // Read the mode bits.
@@ -86,25 +91,49 @@ void setup() {
   pinMode(MODE_PIN_1, INPUT_PULLUP);
   mode = (digitalRead(MODE_PIN_1)&0x1)<<1 | (digitalRead(MODE_PIN_0)&0x1);  // values 0 - 3
   // We could unset the mode pins here and use them for something else.
+  Serial.begin(9600);
 
-// Maybe read this with an interrupt?
+
+
+  // Maybe read this with an interrupt?
   pinMode(BUTTON_PIN, INPUT_PULLUP);
+
+  pinMode(LED_PIN_R, OUTPUT);
+  pinMode(LED_PIN_G, OUTPUT);
+  pinMode(LED_PIN_B, OUTPUT);
+
+  digitalWrite( LED_PIN_R, 1);
+  digitalWrite( LED_PIN_G, 1);
+  digitalWrite( LED_PIN_B, 1);
 
   switch (mode) {
     case MODE_KLEPTO:
-      tone(BEEP_PIN, NOTE_GS1, 200);
+      Serial.println("Mode Klepto");
+      tone(BEEP_PIN, NOTE_GS1, 2000);
       break;
     case MODE_LITMUS:
-      tone(BEEP_PIN, NOTE_GS2, 200);
-      //cs.begin();    
+      Serial.println("Mode Litmus");
+      // Motor sensor interrupt setup
+      
+      tone(BEEP_PIN, NOTE_GS2, 2000);
+      cli();
+      PCICR  |= 0b00000100; // Enables Port D Pin Change Interrupts
+      PCMSK2 |= 0b10000000; // PCINT23  (Pin D7)
+      sei();
+      mLitmus.begin();    
+      
       break;
     case MODE_JUICER:
-      tone(BEEP_PIN, NOTE_B2, 200);
+      Serial.println("Mode Juicer");
+      tone(BEEP_PIN, NOTE_B2, 2000);
       break;
     case MODE_BEAN:
-       tone(BEEP_PIN, NOTE_DS2, 200);
+       Serial.println("Mode Bean");
+       tone(BEEP_PIN, NOTE_DS2, 2000);
      break;
   }
+  
+
   //delay(200);
   //noTone(BEEP_PIN);
  
@@ -115,6 +144,12 @@ void loop() {
     case MODE_KLEPTO:
       break;
     case MODE_LITMUS:
+      mLitmus.doState();
+      if (mLitmus.isFaulted()) {
+        digitalWrite(LED_PIN_R, 0); 
+      } else {
+        digitalWrite(LED_PIN_R, 1);
+      }
       break;
     case MODE_JUICER:
       break;
@@ -123,13 +158,14 @@ void loop() {
   }
 }
 
-void inspect() {
-  //cs.led(TRUE);
-  //cs.look();
-  //cs.led(FALSE);
-  //int red = cs.getRed();
-  //int green = cs.getGreen();
-  //int blue = cs.getBlue();
-  
+
+
+ISR(PCINT2_vect)
+{
+  mLitmus.tick();
+//value++;
 }
+
+
+
 
