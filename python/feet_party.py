@@ -133,8 +133,10 @@ while 1:
 				serial.write('error: no value for tasting!')
 		if word[0]=='locate':
 			whereAreMyFeet2()
-        if word[0]=='log':
-            # Write the rest of the line to the log file.
+		if word[0]=='log':
+            		# Write the rest of the line to the log file.
+			logger.info("croissant {}".format(" ".join(word[-len(word)+1:])))
+
 
 
 		prompt()
