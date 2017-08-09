@@ -24,7 +24,7 @@ def initLogger():
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
     hdlr.setFormatter(formatter)
     logger.addHandler(hdlr)
-    logger.setLevel(logging.WARNING)
+    logger.setLevel(logging.DEBUG)
 
 def takePicture():
 	# take a picture with the camera
@@ -94,7 +94,7 @@ ser = serial.Serial(
 	bytesize=serial.EIGHTBITS
 	#timeout=5
 )
-print(ser.name)
+logger.info(ser.name)
 prompt()
 
 line = ''
