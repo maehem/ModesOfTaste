@@ -20,7 +20,7 @@ def timeStamp():
 	return datetime.datetime.now().strftime(fmt).format()
 
 def initLogger():
-    hdlr = logging.FileHandler('~/feetParty.log')
+    hdlr = logging.FileHandler('/home/pi/feetParty.log')
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
     hdlr.setFormatter(formatter)
     logger.addHandler(hdlr)
