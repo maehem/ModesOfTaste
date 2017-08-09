@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # Listen for commands on the serial line
 
+import logging
 import datetime
 import serial
 from picamera import PiCamera
@@ -12,10 +13,18 @@ import json
 
 
 camera = PiCamera()
+logger = logging.getLogger('Feet Party')
 
 def timeStamp():
 	fmt='%Y%m%d%H%M%S'
 	return datetime.datetime.now().strftime(fmt).format()
+
+def initLogger():
+    hdlr = logging.FileHandler('~/feetParty.log')
+    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+    hdlr.setFormatter(formatter)
+    logger.addHandler(hdlr)
+    logger.setLevel(logging.WARNING)
 
 def takePicture():
 	# take a picture with the camera
@@ -73,6 +82,10 @@ def prompt():
 	ser.write('\n\rnoodle> ')
 
 
+initLogger()
+
+logger.info("It's a Feet Party!!!!")
+
 ser = serial.Serial(
 	port='/dev/ttyS0',
 	baudrate = 9600,
@@ -120,6 +133,8 @@ while 1:
 				serial.write('error: no value for tasting!')
 		if word[0]=='locate':
 			whereAreMyFeet2()
+        if word[0]=='log':
+            # Write the rest of the line to the log file.
 
 
 		prompt()
