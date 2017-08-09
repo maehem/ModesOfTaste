@@ -94,7 +94,7 @@ ser = serial.Serial(
 	bytesize=serial.EIGHTBITS
 	#timeout=5
 )
-logger.info(ser.name)
+logger.info("Pi serial port is: " + ser.name)
 prompt()
 
 line = ''
@@ -136,8 +136,6 @@ while 1:
 		if word[0]=='log':
             		# Write the rest of the line to the log file.
 			logger.info("croissant {}".format(" ".join(word[-len(word)+1:])))
-
-
 
 		prompt()
 	# end while section

@@ -12,17 +12,18 @@
 class ModeLitmus
 {
   public:
-    ModeLitmus(int enPin, int dirPin, int pwmPin, int saPin, int sbPin);
+    ModeLitmus(int enPin, int dirPin, int pwmPin, int saPin, int sbPin, int solPin);
     int begin();
     void tick();  // Motor sensor turned.
     int getTicks();
     void forward(int spd);  // 0-255
     void backward(int spd); // 0-255
     void halt();
-    void doState();
+    boolean doState();  // Return > 0 if faulted.
     boolean isFaulted();
    
   private:
+    int _solPin;
     ColorSensor _cs;
     Noodle_DRV8838 _mot;
     int stateCount;

@@ -24,10 +24,10 @@ int ColorSensor::begin()
   Wire.begin();
   
   if (tcs.begin()) {
-    Serial.println("Found color sensor");
+    Serial.println("log Found color sensor");
     return 0;
   } else {
-    Serial.println("No TCS34725 found ... check your connections");
+    Serial.println("log No TCS34725 found ... check your connections");
     while (1); // halt!
     // return 1;
   }

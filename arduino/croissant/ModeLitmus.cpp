@@ -7,9 +7,10 @@
 #define STATE_FAULTED  4
 
 
-ModeLitmus::ModeLitmus(int enPin, int dirPin, int pwmPin, int saPin, int sbPin) {
+ModeLitmus::ModeLitmus(int enPin, int dirPin, int pwmPin, int saPin, int sbPin, int solPin) {
   _mot = Noodle_DRV8838( enPin, dirPin, pwmPin, saPin, sbPin );
   _cs = ColorSensor();
+  _solPin = solPin;
 }
     
 int ModeLitmus::begin() {
@@ -28,13 +29,13 @@ int ModeLitmus::getTicks() {
   return _mot.getTicks();
 }
 
-void ModeLitmus::doState() {
+boolean ModeLitmus::doState() {
       //  Move tape.
       stateCount--;
       switch( state ) {
         case STATE_STOPPED:
           if (stateCount <= 0 ) {
-            Serial.println(" new state: forward");
+            Serial.println("log state: forward");
             state = STATE_FORWARD;
             _mot.forward(150);  // Speed is 0-255. Tick's start counting at 0.
             stateCount = 30000;  // Watchdog
@@ -48,7 +49,7 @@ void ModeLitmus::doState() {
             _mot.halt();
             delay(100);
             rewindTicks += _mot.getTicks();
-            Serial.println(" new state: tasting");
+            Serial.println("log state: tasting");
             state = STATE_TASTING;
             stateCount = 10000;
             movTicks = 0;
@@ -57,7 +58,7 @@ void ModeLitmus::doState() {
             // Watchdog!!!!  Motor not turning.
             _mot.halt();
             delay(100);
-            Serial.println(" new state: faulted");
+            Serial.println("log state: faulted");
             state = STATE_FAULTED;
           }
           break;
@@ -65,7 +66,7 @@ void ModeLitmus::doState() {
           if ( _mot.getTicks() > rewindTicks ) {
              // We have rewound
             _mot.halt();
-            Serial.println(" new state: stopped");
+            Serial.println("log state: stopped");
             state = STATE_STOPPED;
 
             rewindTicks = 0;  // Clear it for next time.
@@ -74,7 +75,12 @@ void ModeLitmus::doState() {
           }
           break;
         case STATE_TASTING:
-          //  Read color.  Dwell.  Foward.  Four times.
+            digitalWrite( _solPin, 1 );
+            delay(600);
+            digitalWrite( _solPin, 0 );
+            delay(600);
+            
+            //  Read color.  Dwell.  Foward.  Four times.
             //  Look at the color.
             _cs.led(true);
             delay(60);
@@ -101,14 +107,14 @@ void ModeLitmus::doState() {
 
           tasteCount++;
           if ( tasteCount > 4 ) {
-            Serial.println(" new state: rewind");
+            Serial.println("log state: rewind");
             state = STATE_REVERSE;
             tasteCount = 0;
             _mot.backward(150);
             stateCount = 10000; // Watchdog.
           } else {
             // Forward
-            Serial.println(" new state: forward");
+            Serial.println("log state: forward");
             state = STATE_FORWARD;
             movTicks = 1000;  // How many ticks to move.
             _mot.forward(150);
@@ -124,7 +130,7 @@ void ModeLitmus::doState() {
            break;
       }
       //  After 5 times, rewind and do again.
-
+      return isFaulted();
 }
 
 // Might not need these.
@@ -141,6 +147,6 @@ void ModeLitmus::halt() {
 }
 
 boolean ModeLitmus::isFaulted() {
-  return state==STATE_FAULTED?true:false;
+  return state>=STATE_FAULTED;
 }
 

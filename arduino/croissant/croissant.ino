@@ -43,8 +43,6 @@
 
 #include <avr/interrupt.h>
 
-volatile int value = 0;
-
 #define MODE_KLEPTO 0
 #define MODE_LITMUS 1
 #define MODE_JUICER 2
@@ -83,7 +81,7 @@ int mode = 4;  // Overwritten once we read the mode pins.
 ModeBean mBean(SERVO_PIN_A);
 ModeJuicer mJuicer;
 ModeKlepto mKlepto;
-ModeLitmus mLitmus(MOT_EN_PIN, MOT_NDIR_PIN, MOT_PWM_PIN, MOT_S1_PIN, MOT_S2_PIN);
+ModeLitmus mLitmus(MOT_EN_PIN, MOT_NDIR_PIN, MOT_PWM_PIN, MOT_S1_PIN, MOT_S2_PIN, SOLENOID_PIN);
 
 void setup() {
   // Read the mode bits.
@@ -108,14 +106,14 @@ void setup() {
 
   switch (mode) {
     case MODE_KLEPTO:
-      Serial.println("Mode Klepto");
-      tone(BEEP_PIN, NOTE_GS1, 2000);
+      Serial.println("log Mode Klepto");
+      tone(BEEP_PIN, NOTE_GS1, 1000);
       break;
     case MODE_LITMUS:
-      Serial.println("Mode Litmus");
+      Serial.println("log Mode Litmus");
       // Motor sensor interrupt setup
       
-      tone(BEEP_PIN, NOTE_GS2, 2000);
+      tone(BEEP_PIN, NOTE_GS2, 1000);
       cli();
       PCICR  |= 0b00000100; // Enables Port D Pin Change Interrupts
       PCMSK2 |= 0b10000000; // PCINT23  (Pin D7)
@@ -124,19 +122,14 @@ void setup() {
       
       break;
     case MODE_JUICER:
-      Serial.println("Mode Juicer");
-      tone(BEEP_PIN, NOTE_B2, 2000);
+      Serial.println("log Mode Juicer");
+      tone(BEEP_PIN, NOTE_B2, 1000);
       break;
     case MODE_BEAN:
-       Serial.println("Mode Bean");
-       tone(BEEP_PIN, NOTE_DS2, 2000);
+       Serial.println("log Mode Bean");
+       tone(BEEP_PIN, NOTE_DS2, 1000);
      break;
-  }
-  
-
-  //delay(200);
-  //noTone(BEEP_PIN);
- 
+  } 
 }
 
 void loop() {
@@ -144,11 +137,11 @@ void loop() {
     case MODE_KLEPTO:
       break;
     case MODE_LITMUS:
-      mLitmus.doState();
-      if (mLitmus.isFaulted()) {
-        digitalWrite(LED_PIN_R, 0); 
+      //mLitmus.doState();
+      if (mLitmus.doState()) {
+        digitalWrite(LED_PIN_R, 0);  // Faulted
       } else {
-        digitalWrite(LED_PIN_R, 1);
+        digitalWrite(LED_PIN_R, 1);  // Normal return.
       }
       break;
     case MODE_JUICER:
