@@ -25,6 +25,7 @@ int ColorSensor::begin()
   
   if (tcs.begin()) {
     Serial.println("log Found color sensor");
+    led(false);
     return 0;
   } else {
     Serial.println("log No TCS34725 found ... check your connections");
@@ -32,7 +33,6 @@ int ColorSensor::begin()
     // return 1;
   }
 
-  led(false);
 }
 
 void ColorSensor::led( boolean on)

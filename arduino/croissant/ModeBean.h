@@ -1,17 +1,23 @@
 #ifndef ModeBean_h
 #define ModeBean_h
+#include "Arduino.h"
 
-// Motor
 // PiComm
+#include <Servo.h>
 
 class ModeBean
 {
   public:
     ModeBean(int servoPin);
     int begin();
+    boolean doState();  // Return > 0 if faulted.
+    boolean isFaulted();
     
   private:
     int _servoPin;
+    int state;
+    Servo servo;
+    boolean firstPass;
 };
 
 #endif

@@ -79,8 +79,8 @@ int mode = 4;  // Overwritten once we read the mode pins.
 //ColorSensor cs = ColorSensor(CS_LED);
 
 ModeBean mBean(SERVO_PIN_A);
-ModeJuicer mJuicer;
-ModeKlepto mKlepto;
+ModeJuicer mJuicer(SERVO_PIN_A);
+ModeKlepto mKlepto(MOT_EN_PIN, MOT_NDIR_PIN, MOT_PWM_PIN, MOT_S1_PIN, MOT_S2_PIN, SOLENOID_PIN);
 ModeLitmus mLitmus(MOT_EN_PIN, MOT_NDIR_PIN, MOT_PWM_PIN, MOT_S1_PIN, MOT_S2_PIN, SOLENOID_PIN);
 
 void setup() {
@@ -108,6 +108,12 @@ void setup() {
     case MODE_KLEPTO:
       Serial.println("log Mode Klepto");
       tone(BEEP_PIN, NOTE_GS1, 1000);
+      cli();
+      PCICR  |= 0b00000100; // Enables Port D Pin Change Interrupts
+      PCMSK2 |= 0b10000000; // PCINT23  (Pin D7)
+      sei();
+      mKlepto.begin();    
+
       break;
     case MODE_LITMUS:
       Serial.println("log Mode Litmus");
@@ -118,7 +124,7 @@ void setup() {
       PCICR  |= 0b00000100; // Enables Port D Pin Change Interrupts
       PCMSK2 |= 0b10000000; // PCINT23  (Pin D7)
       sei();
-      mLitmus.begin();    
+      mLitmus.begin();
       
       break;
     case MODE_JUICER:
@@ -135,13 +141,23 @@ void setup() {
 void loop() {
   switch (mode) {
     case MODE_KLEPTO:
+      if ( mKlepto.doState()) {
+        setLED(255,0,0); // Error state
+      } else {
+        setLED(0,255,0); // OK
+      }
+
+      //delay(5000);
       break;
     case MODE_LITMUS:
       //mLitmus.doState();
       if (mLitmus.doState()) {
-        digitalWrite(LED_PIN_R, 0);  // Faulted
+        setLED( 255, 0, 0 );
       } else {
-        digitalWrite(LED_PIN_R, 1);  // Normal return.
+        //digitalWrite(LED_PIN_R, 1);  // Normal return.
+        setLED( mLitmus.getRed(), mLitmus.getGreen(), mLitmus.getBlue() );
+        
+        
       }
       break;
     case MODE_JUICER:
@@ -151,13 +167,20 @@ void loop() {
   }
 }
 
+void setLED( int r, int g, int b ) {
+  analogWrite( LED_PIN_R, 255-r );
+  analogWrite( LED_PIN_G, 255-g );
+  analogWrite( LED_PIN_B, 255-b );
+}
 
 
 ISR(PCINT2_vect)
 {
   mLitmus.tick();
+  mKlepto.tick();
 //value++;
 }
+
 
 
 

@@ -21,16 +21,20 @@ class ModeLitmus
     void halt();
     boolean doState();  // Return > 0 if faulted.
     boolean isFaulted();
+    int getRed();
+    int getGreen();
+    int getBlue();
    
   private:
     int _solPin;
     ColorSensor _cs;
     Noodle_DRV8838 _mot;
-    int stateCount;
+    int watchdog;
     int movTicks;
     int state;
     int rewindTicks;
     int tasteCount;
+    boolean firstPass;
 };
 
 #endif
