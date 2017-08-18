@@ -7,14 +7,17 @@ import datetime
 import serial
 from picamera import PiCamera
 from time import sleep
-from geolocation.main import GoogleMaps
-from geolocation.distance_matrix.client import DistanceMatrixApiClient
+#from geolocation.main import GoogleMaps
+#from geolocation.distance_matrix.client import DistanceMatrixApiClient
 import urllib2
+#import urllib
 import json
 #import sys
 from twython import Twython
 import ConfigParser
 from os.path import expanduser
+
+#debugTwitPhoto = True
 
 home = expanduser("~")
 camera = PiCamera()
@@ -22,29 +25,33 @@ logger = logging.getLogger('Feet Party')
 loggerFileName   = home + '/feetParty.log'
 tasteLogFileName = home + '/Desktop/tasteLog.txt'
 snapFilesDir     = home + '/Desktop/'
-thereAreColors = false
-thereArePictures = false
+thereAreColors = False
+thereArePictures = False
 
+Config = ConfigParser.ConfigParser()
 
 def twitterInit():
-    Config = ConfigParser.ConfigParser()
+    global twitter
     Config.read("/home/pi/twitter-config.ini")
     tc = ConfigSectionMap("Twitter")
-    
-    twitter = Twython(tc['apiKey'],tc['apiSecret'],
-                  tc['accessToken'],tc['accessTokenSecret'] )
+    twitter = Twython(tc['apikey'],tc['apisecret'],
+                  tc['accesstoken'],tc['accesstokensecret'] )
+    logger.info( "Twitter Init" )
 
 
-def twitterPost(tweetStr, imageFile):
+def twitterPostPic(tweetStr, imageFile):
+    global twitter
     photo = open(imageFile, 'rb')
-    response = twitter.upload_media(media=photo)
-    twitter.update_status(status=tweetStr,
-                          media_ids=[response['media_id']])
-    print "Tweeted with image: " + tweetStr
+    #    response = twitter.upload_media(media=photo)
+    #   twitter.update_status_with_media(status=tweetStr,
+    #                          media_ids=[response['media_id']])
+    twitter.update_status_with_media(status=tweetStr, media=photo)
+    logger.info( "Tweeted with image: " + tweetStr )
 
-def twitterPost(tweetStr):
+def twitterPostText(tweetStr):
+    global twitter
     twitter.update_status(status=tweetStr)
-    print "Tweeted: " + tweetStr
+    logger.info( "Tweeted: " + tweetStr )
 
 def ConfigSectionMap(section):
     dict1 = {}
@@ -61,8 +68,8 @@ def ConfigSectionMap(section):
 
 
 def timeStamp():
-	fmt='%Y%m%d%H%M%S'
-	return datetime.datetime.now().strftime(fmt).format()
+    fmt='%Y%m%d%H%M%S'
+    return datetime.datetime.now().strftime(fmt).format()
 
 def initLogger():
     hdlr = logging.FileHandler(loggerFileName)
@@ -70,25 +77,30 @@ def initLogger():
     hdlr.setFormatter(formatter)
     logger.addHandler(hdlr)
     logger.setLevel(logging.DEBUG)
+    logger.info("Logger running")
 
 def takePicture():
-	# take a picture with the camera
-	print '<snap>'	
-	# store the picture
-	camera.start_preview()
-	sleep(2)
+    global lastImageFile
+    global thereArePictures
+    # take a picture with the camera
+    # store the picture
+    camera.start_preview()
+    sleep(2)
     lastImageFile = snapFilesDir + timeStamp() + '-snap.jpg'
-	camera.capture(lastImageFile)
-	camera.stop_preview()
-    thereArePictures = true
-	ser.write('<tick>')
+    camera.capture(lastImageFile)
+    camera.stop_preview()
+    thereArePictures = bool(1)
+    ser.write('<tick>')
+    logger.info('photo snapped: ' + lastImageFile )
 
 def taste(val):
-	# log the color sensor value from the taste command
-	ser.write('<lick>')
-	f=open(tasteLogFileName,"a+")
-	f.write(timeStamp() + ':' + val + '\n')
-    thereAreColors = true
+    global thereAreColors
+    # log the color sensor value from the taste command
+    ser.write('<lick>')
+    f=open(tasteLogFileName,"a+")
+    f.write(timeStamp() + ':' + val + '\n')
+    thereAreColors = True
+    logger.info('color tasted: ' + val )
 
 #def whereAreMyFeet():
 #	f=open("~/google-map-api-key.txt", "r")
@@ -108,39 +120,44 @@ def taste(val):
 #	print(my_location.postal_code)
 
 def whereAreMyFeet2():
-	f=urllib2.urlopen("https://api.ipify.org/?format=json")
-	json_string = f.read()
-	f.close()
-	stuff = json.loads(json_string)
-	ip = stuff['ip']
-	# Automatically geolocate the connecting IP
-	f = urllib2.urlopen('http://freegeoip.net/json/'+ip)
-	json_string = f.read()
-	f.close()
-	location = json.loads(json_string)
-	#print(location)
-	location_city = location['city']
-	#location_state = location['region_name']
-	#location_country = location['country_name']
-	#location_zip = location['zip_code']
-	ser.write('\n\r' + location['city'])
+    f=urllib2.urlopen("https://api.ipify.org/?format=json")
+    json_string = f.read()
+    f.close()
+    stuff = json.loads(json_string)
+    ip = stuff['ip']
+    # Automatically geolocate the connecting IP
+    f = urllib2.urlopen('http://freegeoip.net/json/'+ip)
+    json_string = f.read()
+    f.close()
+    location = json.loads(json_string)
+    #print(location)
+    location_city = location['city']
+    #location_state = location['region_name']
+    #location_country = location['country_name']
+    #location_zip = location['zip_code']
+    ser.write('\n\r' + location['city'])
+    logger.info( 'location detected: ' + location_city )
 
 def publishPhoto():
     # Get a unique message from a list
     # add location with: whereAreMyFeet2()
-    twitterPost( message, lastImageFile )
+    message = "I'm testing my tweet-feet camera code! #tweetfeet"
+    twitterPostPic( message, lastImageFile )
+    logger.info( 'twitter publish: ' + lastImageFile )
 
 def publishColor():
-    twitterPost( message )
+    twitterPostText( message )
+    logger.info( 'twitter publish: ' + message )
 
 def checkInternetConnection():
     try:
-        socket.create_connection(('8.8.8.8',80))
-        haveNetwork = true
-        print 'Network: connected to google'
+        socket.setdefaulttimeout(5)
+        socket.create_connection(('8.8.8.8',53))
+        haveNetwork = True
+        logger.info( 'Network: connected to google' )
     except socket.error as msg:
-        haveNetwork = false
-        print 'Network: there is no internet connection'
+        haveNetwork = False
+        logger.critical( 'Network: ' + msg )
 
 def prompt():
     ser.write('\n\rnoodle> ')
@@ -151,12 +168,12 @@ initLogger()
 logger.info("It's a Feet Party!!!!")
 
 ser = serial.Serial(
-	port='/dev/ttyS0',
-	baudrate = 9600,
-	parity=serial.PARITY_NONE,
-	stopbits=serial.STOPBITS_ONE,
-	bytesize=serial.EIGHTBITS
-	#timeout=5
+    port='/dev/ttyS0',
+    baudrate = 9600,
+    parity=serial.PARITY_NONE,
+    stopbits=serial.STOPBITS_ONE,
+    bytesize=serial.EIGHTBITS
+    #timeout=5
 )
 logger.info("Pi serial port is: " + ser.name)
 
@@ -168,57 +185,61 @@ prompt()
 
 line = ''
 while 1:
-	c=ser.read()
-	# echo char
-	ser.write(c)
-	#	print x
+    c=ser.read()
+    # echo char
+    ser.write(c)
+    #	print x
 
-	line += c
+    line += c
 
-	if c == '\r':
+    if c == '\r':
 	
-		# split the line up
-		word = line.split()	
-		line = ''
+ 	# split the line up
+        word = line.split()	
+        line = ''
 
-		# parse the first item as a command
-		print('----')
-		print(word)	
-		print('----')
-		
+        # parse the first item as a command
+        logger.debug(word)	
 
-		# was there even a command?
-		if len(word) == 0:
-			prompt()
-			continue
 
-		# if the command is 'snap' then call takePicture
-		if word[0]=='snap':
-			takePicture()
-		if word[0]=='taste':
-			if len(word) > 1:
-				taste(word[1])
-			else:
-				serial.write('error: no value for tasting!')
-		if word[0]=='locate':
-			whereAreMyFeet2()
-		if word[0]=='log':
-            		# Write the rest of the line to the log file.
-			logger.info("croissant {}".format(" ".join(word[-len(word)+1:])))
+        # was there even a command?
+        if len(word) == 0:
+            prompt()
+            continue
 
-        if ( thereArePictures ):
+        # if the command is 'snap' then call takePicture
+        if word[0]=='snap':
+           takePicture()
+        if word[0]=='taste':
+            if len(word) > 1:
+                taste(word[1])
+            else:
+                serial.write('error: no value for tasting!')
+        if word[0]=='locate':
+            whereAreMyFeet2()
+        if word[0]=='log':
+       	    # Write the rest of the line to the log file.
+            logger.info("croissant {}".format(" ".join(word[-len(word)+1:])))
+
+        if thereArePictures:
             thisHour = datetime.datetime.now().strftime('%H').format()
-            if ( lastHour != thisHour ):
+            if ( debugTwitPhoto or lastHour != thisHour ):
                 lastHour = thisHour
+                logger.info('twitter: attempt to publish...')
                 publishPhoto()
+                thereArePictures = bool(0)
+        else:
+            logger.info( "No pics to tweet var={0}".format(thereArePictures) )
                 
-        if ( thereAreColors ):
+        if thereAreColors:
             thisHour = int(datetime.datetime.now().strftime('%H').format())
             thisMinute = int(datetime.datetime.now().strftime('%M').format())
-            if ( lastHour != thisHour && thisMinute > 28 && thisMinute < 33 ):
+            if ( lastHour != thisHour and thisMinute > 28 and thisMinute < 33 ):
                 lastHour = thisHour
-                publishColor()
+            logger.info('twitter: attempt to publish...')
+            publishColor()
+            thereAreColors = False
 
-		prompt()
-	# end while section
+    prompt()
+    # end while section
 
