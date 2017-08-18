@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # Listen for commands on the serial line
 
+import socket
 import logging
 import datetime
 import serial
@@ -10,17 +11,61 @@ from geolocation.main import GoogleMaps
 from geolocation.distance_matrix.client import DistanceMatrixApiClient
 import urllib2
 import json
+#import sys
+from twython import Twython
+import ConfigParser
+from os.path import expanduser
 
-
+home = expanduser("~")
 camera = PiCamera()
 logger = logging.getLogger('Feet Party')
+loggerFileName   = home + '/feetParty.log'
+tasteLogFileName = home + '/Desktop/tasteLog.txt'
+snapFilesDir     = home + '/Desktop/'
+thereAreColors = false
+thereArePictures = false
+
+
+def twitterInit():
+    Config = ConfigParser.ConfigParser()
+    Config.read("/home/pi/twitter-config.ini")
+    tc = ConfigSectionMap("Twitter")
+    
+    twitter = Twython(tc['apiKey'],tc['apiSecret'],
+                  tc['accessToken'],tc['accessTokenSecret'] )
+
+
+def twitterPost(tweetStr, imageFile):
+    photo = open(imageFile, 'rb')
+    response = twitter.upload_media(media=photo)
+    twitter.update_status(status=tweetStr,
+                          media_ids=[response['media_id']])
+    print "Tweeted with image: " + tweetStr
+
+def twitterPost(tweetStr):
+    twitter.update_status(status=tweetStr)
+    print "Tweeted: " + tweetStr
+
+def ConfigSectionMap(section):
+    dict1 = {}
+    options = Config.options(section)
+    for option in options:
+        try:
+            dict1[option] = Config.get(section, option)
+            if dict1[option] == -1:
+                DebugPrint("skip: %s" % option)
+        except:
+            print("exception on %s!" % option)
+            dict1[option] = None
+    return dict1
+
 
 def timeStamp():
 	fmt='%Y%m%d%H%M%S'
 	return datetime.datetime.now().strftime(fmt).format()
 
 def initLogger():
-    hdlr = logging.FileHandler('/home/pi/feetParty.log')
+    hdlr = logging.FileHandler(loggerFileName)
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
     hdlr.setFormatter(formatter)
     logger.addHandler(hdlr)
@@ -32,32 +77,35 @@ def takePicture():
 	# store the picture
 	camera.start_preview()
 	sleep(2)
-	camera.capture('/home/pi/Desktop/' + timeStamp() + '-snap.jpg')
+    lastImageFile = snapFilesDir + timeStamp() + '-snap.jpg'
+	camera.capture(lastImageFile)
 	camera.stop_preview()
+    thereArePictures = true
 	ser.write('<tick>')
 
 def taste(val):
 	# log the color sensor value from the taste command
 	ser.write('<lick>')
-	f=open("/home/pi/Desktop/tasteLog.txt","a+")
+	f=open(tasteLogFileName,"a+")
 	f.write(timeStamp() + ':' + val + '\n')
+    thereAreColors = true
 
-def whereAreMyFeet():
-	f=open("~/google-map-api-key.txt", "r")
-	api_key=f.readline()
-	google_maps = GoogleMaps(api_key)
-
-	#location = google_maps.search(location=address) # sends search to Google Maps.
-	location = google_maps.search() # sends search to Google Maps.
-
-	print(location.all()) # returns all locations.
-
-	my_location = location.first() # returns only first location.
-
-	print(my_location.city)
-	print(my_location.route)
-	print(my_location.street_number)
-	print(my_location.postal_code)
+#def whereAreMyFeet():
+#	f=open("~/google-map-api-key.txt", "r")
+#	api_key=f.readline()
+#	google_maps = GoogleMaps(api_key)
+#
+#	#location = google_maps.search(location=address) # sends search to Google Maps.
+#	location = google_maps.search() # sends search to Google Maps.
+#
+#	print(location.all()) # returns all locations.
+#
+#	my_location = location.first() # returns only first location.
+#
+#	print(my_location.city)
+#	print(my_location.route)
+#	print(my_location.street_number)
+#	print(my_location.postal_code)
 
 def whereAreMyFeet2():
 	f=urllib2.urlopen("https://api.ipify.org/?format=json")
@@ -77,9 +125,25 @@ def whereAreMyFeet2():
 	#location_zip = location['zip_code']
 	ser.write('\n\r' + location['city'])
 
+def publishPhoto():
+    # Get a unique message from a list
+    # add location with: whereAreMyFeet2()
+    twitterPost( message, lastImageFile )
+
+def publishColor():
+    twitterPost( message )
+
+def checkInternetConnection():
+    try:
+        socket.create_connection(('8.8.8.8',80))
+        haveNetwork = true
+        print 'Network: connected to google'
+    except socket.error as msg:
+        haveNetwork = false
+        print 'Network: there is no internet connection'
 
 def prompt():
-	ser.write('\n\rnoodle> ')
+    ser.write('\n\rnoodle> ')
 
 
 initLogger()
@@ -95,6 +159,11 @@ ser = serial.Serial(
 	#timeout=5
 )
 logger.info("Pi serial port is: " + ser.name)
+
+checkInternetConnection()
+
+twitterInit()
+
 prompt()
 
 line = ''
@@ -136,6 +205,19 @@ while 1:
 		if word[0]=='log':
             		# Write the rest of the line to the log file.
 			logger.info("croissant {}".format(" ".join(word[-len(word)+1:])))
+
+        if ( thereArePictures ):
+            thisHour = datetime.datetime.now().strftime('%H').format()
+            if ( lastHour != thisHour ):
+                lastHour = thisHour
+                publishPhoto()
+                
+        if ( thereAreColors ):
+            thisHour = int(datetime.datetime.now().strftime('%H').format())
+            thisMinute = int(datetime.datetime.now().strftime('%M').format())
+            if ( lastHour != thisHour && thisMinute > 28 && thisMinute < 33 ):
+                lastHour = thisHour
+                publishColor()
 
 		prompt()
 	# end while section
