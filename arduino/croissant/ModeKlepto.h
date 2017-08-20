@@ -23,12 +23,11 @@ class ModeKlepto
   private:
     int _ledPin;
     Noodle_DRV8838 _mot;
+    int state;
     int watchdog;
     int movTicks;
-    int state;
     int rewindTicks;
-    int tasteCount;
-    boolean firstPass;
+    //int fwdCount;
 };
 
 #endif

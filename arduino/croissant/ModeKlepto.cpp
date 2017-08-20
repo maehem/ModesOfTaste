@@ -11,15 +11,22 @@
 
 #include "ModeKlepto.h"
 
+#define STATE_INIT     0
+#define STATE_STOPPED  1
+#define STATE_FORWARD  2
+#define STATE_REVERSE  3
+#define STATE_TASTING  4
+#define STATE_FAULTED  5
 
-#define STATE_STOPPED  0
-#define STATE_FORWARD  1
-#define STATE_REVERSE  2
-#define STATE_TASTING  3
-#define STATE_FAULTED  4
-
-#define STATE_DELAY    4*60*1000UL
+// 2 minutes after a forward and 2 minutes after reverse
+#define STATE_DELAY    2*60*1000UL
 #define STATE_INITIAL_DELAY  1*60*1000UL
+
+// debug values
+//#define STATE_DELAY    4*1000UL
+//#define STATE_INITIAL_DELAY  1*1000UL
+
+#define FORWARD_COUNT 5
 
 ModeKlepto::ModeKlepto(int enPin, int dirPin, int pwmPin, int saPin, int sbPin, int ledPin) {
   _mot = Noodle_DRV8838( enPin, dirPin, pwmPin, saPin, sbPin );
@@ -29,8 +36,7 @@ ModeKlepto::ModeKlepto(int enPin, int dirPin, int pwmPin, int saPin, int sbPin, 
 int ModeKlepto::begin() {
   _mot.begin();
   watchdog = 0;
-  state = STATE_STOPPED;
-  firstPass = true;
+  state = STATE_INIT;
   delay(500);
 }
 
@@ -43,15 +49,24 @@ int ModeKlepto::getTicks() {
 }
 
 boolean ModeKlepto::doState() {
-  //  Move tape.
   switch ( state ) {
+    case STATE_INIT:
+      delay(STATE_INITIAL_DELAY);
+      state = STATE_STOPPED;
+      break;
     case STATE_STOPPED:
-      if (watchdog <= 0 ) {
+      if ( rewindTicks > 0 ) {
+        Serial.println("log state: reverse");
+        state = STATE_REVERSE;
+        _mot.backward(150);
+        watchdog = 30000;
+        movTicks = rewindTicks;
+      } else {
         Serial.println("log state: forward");
         state = STATE_FORWARD;
         _mot.forward(150);  // Speed is 0-255. Tick's start counting at 0.
         watchdog = 30000;  // Watchdog
-        movTicks = 1000;
+        movTicks = 200;
       }
       break;
     case STATE_FORWARD:
@@ -60,7 +75,8 @@ boolean ModeKlepto::doState() {
       if ( _mot.getTicks() > movTicks ) {
         // That's far enough.
         _mot.halt();
-        delay(100);
+        //fwdCount++;
+        delay(600);
         rewindTicks += _mot.getTicks();
         Serial.println("log state: tasting");
         state = STATE_TASTING;
@@ -73,33 +89,31 @@ boolean ModeKlepto::doState() {
         Serial.println("log state: faulted");
         state = STATE_FAULTED;
 
-        state = STATE_TASTING;  // Debug for no motor
+        //state = STATE_TASTING;  // Debug for no motor
       }
       break;
     case STATE_REVERSE:
       watchdog--;
-      if ( _mot.getTicks() > rewindTicks ) {
-        // We have rewound
+      //Serial.println( _mot.getTicks() );
+      if ( _mot.getTicks() > movTicks ) {
+        // That's far enough.
         _mot.halt();
-        Serial.println("log state: stopped");
+        //fwdCount++;
+        delay(600);
+        rewindTicks = 0;
+        Serial.println("log state: stop");
         state = STATE_STOPPED;
-
-        rewindTicks = 0;  // Clear it for next time.
-
-        firstPass ? delay( STATE_INITIAL_DELAY) : delay(STATE_DELAY);
-        firstPass = false;
-
-      } else if ( watchdog <= 0 ) {
+        movTicks = 0;
+        delay(STATE_DELAY);
+      }
+      else if ( watchdog <= 0 ) {
         // Watchdog!!!!  Motor not turning.
         _mot.halt();
         delay(100);
         Serial.println("log state: faulted");
         state = STATE_FAULTED;
 
-        //state = STATE_STOPPED;  // Debug for no motor
-
-      } else {
-        // Animate the RGB
+        //state = STATE_TASTING;  // Debug for no motor
       }
       break;
     case STATE_TASTING:
@@ -116,10 +130,12 @@ boolean ModeKlepto::doState() {
       //  Wait a few seconds.
       delay(2000);
 
-      Serial.println("log state: rewind");
-      state = STATE_REVERSE;
-      _mot.backward(150);
-      watchdog = 10000; // Watchdog.
+      Serial.println("log state: stop");
+      state = STATE_STOPPED;
+      delay(STATE_DELAY);
+
+      //_mot.backward(150);
+      //watchdog = 10000; // Watchdog.
 
       break;
     case STATE_FAULTED:
@@ -129,7 +145,6 @@ boolean ModeKlepto::doState() {
       delay(100);
       break;
   }
-  //  After 5 times, rewind and do again.
   return isFaulted();
 }
 
