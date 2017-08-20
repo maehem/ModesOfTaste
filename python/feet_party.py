@@ -18,8 +18,10 @@ import ConfigParser
 from os.path import expanduser
 
 #debugTwitPhoto = True
+debugTwitPhoto = False
 
-home = expanduser("~")
+#home = expanduser("~")
+home = expanduser("/home/pi")
 camera = PiCamera()
 logger = logging.getLogger('Feet Party')
 loggerFileName   = home + '/feetParty.log'
@@ -27,6 +29,8 @@ tasteLogFileName = home + '/Desktop/tasteLog.txt'
 snapFilesDir     = home + '/Desktop/'
 thereAreColors = False
 thereArePictures = False
+lastHour = 0
+
 
 Config = ConfigParser.ConfigParser()
 
