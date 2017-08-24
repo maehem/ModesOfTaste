@@ -10,11 +10,11 @@
 
 #include "ModeLitmus.h"
 
-#define STATE_STOPPED  0
-#define STATE_FORWARD  1
-#define STATE_REVERSE  2
+#define STATE_INITIAL  0
+#define STATE_STOPPED  1
+#define STATE_FORWARD  2
 #define STATE_TASTING  3
-#define STATE_FAULTED  4
+#define STATE_FAULTED  5
 
 #define STATE_DELAY    4*60*1000UL
 #define STATE_INITIAL_DELAY  2*60*1000UL
@@ -29,9 +29,8 @@ int ModeLitmus::begin() {
   _cs.begin();
   _mot.begin();
   watchdog = 0;
-  firstPass = true;
-  state = STATE_STOPPED;
-  delay(500);
+  state = STATE_INITIAL;
+  //delay(500);
 }
 
 void ModeLitmus::tick() {
@@ -42,16 +41,20 @@ int ModeLitmus::getTicks() {
   return _mot.getTicks();
 }
 
-boolean ModeLitmus::doState() {
+int ModeLitmus::doState() {
   //  Move tape.
   watchdog--;
   switch ( state ) {
+    case STATE_INITIAL:
+      Serial.println("log state: initial delay");
+      delay(STATE_INITIAL_DELAY);
+      state = STATE_STOPPED;
     case STATE_STOPPED:
-        Serial.println("log state: forward");
-        state = STATE_FORWARD;
-        _mot.forward(150);  // Speed is 0-255. Tick's start counting at 0.
-        watchdog = 10000;  // Watchdog
-        movTicks = 1000;
+      Serial.println("log state: forward");
+      state = STATE_FORWARD;
+      _mot.forward(150);  // Speed is 0-255. Tick's start counting at 0.
+      watchdog = 10000;  // Watchdog
+      movTicks = 1000;
       break;
     case STATE_FORWARD:
       //Serial.println( _mot.getTicks() );
@@ -59,7 +62,6 @@ boolean ModeLitmus::doState() {
         // That's far enough.
         _mot.halt();
         delay(100);
-        rewindTicks += _mot.getTicks();
         Serial.println("log state: tasting");
         state = STATE_TASTING;
         movTicks = 0;
@@ -71,23 +73,9 @@ boolean ModeLitmus::doState() {
         state = STATE_FAULTED;
       }
       break;
-    case STATE_REVERSE:
-      if ( _mot.getTicks() > rewindTicks ) {
-        // We have rewound
-        _mot.halt();
-        Serial.println("log state: stopped");
-        state = STATE_STOPPED;
-
-        rewindTicks = 0;  // Clear it for next time.
-        
-        firstPass?delay( STATE_INITIAL_DELAY):delay(STATE_DELAY);
-        firstPass = false;
-        
-      } else {
-        // Animate the RGB
-      }
-      break;
     case STATE_TASTING:
+      delay(1000);
+      
       digitalWrite( _solPin, 1 );
       delay(600);
       digitalWrite( _solPin, 0 );
@@ -118,21 +106,9 @@ boolean ModeLitmus::doState() {
       //  Wait a few seconds.
       delay(2000);
 
-      tasteCount++;
-      if ( tasteCount > 4 ) {
-        Serial.println("log state: rewind");
-        state = STATE_REVERSE;
-        tasteCount = 0;
-        _mot.backward(150);
-        watchdog = 10000; // Watchdog.
-      } else {
-        // Forward
-        Serial.println("log state: forward");
-        state = STATE_FORWARD;
-        movTicks = 1000;  // How many ticks to move.
-        _mot.forward(150);
-        watchdog = 10000;  // Watchdog
-      }
+      // Next state
+      Serial.println("log state: stopped");
+      state = STATE_STOPPED;
 
       break;
     case STATE_FAULTED:
@@ -143,21 +119,21 @@ boolean ModeLitmus::doState() {
       break;
   }
   //  After 5 times, rewind and do again.
-  return isFaulted();
+  return state;
 }
 
-// Might not need these.
-void ModeLitmus::forward(int spd) {
-  _mot.forward(spd);
-}
-
-void ModeLitmus::backward(int spd)  {
-  _mot.backward(spd);
-}
-
-void ModeLitmus::halt() {
-  _mot.halt();
-}
+//// Might not need these.
+//void ModeLitmus::forward(int spd) {
+//  _mot.forward(spd);
+//}
+//
+//void ModeLitmus::backward(int spd)  {
+//  _mot.backward(spd);
+//}
+//
+//void ModeLitmus::halt() {
+//  _mot.halt();
+//}
 
 boolean ModeLitmus::isFaulted() {
   return state >= STATE_FAULTED;

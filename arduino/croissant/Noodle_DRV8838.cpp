@@ -31,9 +31,9 @@ void Noodle_DRV8838::forward(int spd) {
   digitalWrite( _enPin, true   );
   digitalWrite( _dirPin, false );
   analogWrite( _pwmPin, 170   );
-  delay(100); // Motor needs time to windup.
+  delay(30); // Motor needs time to windup.
   analogWrite( _pwmPin, spd   );
-  delay(600);
+  //delay(40);
 
 }
 
@@ -43,9 +43,9 @@ void Noodle_DRV8838::backward(int spd) {
   digitalWrite(  _enPin, true );
   digitalWrite( _dirPin, true );
   analogWrite( _pwmPin, 200   );
-  delay(100); // Motor needs time to windup.
-   analogWrite( _pwmPin, spd );
-   delay(600);
+  delay(30); // Motor needs time to windup.
+  analogWrite( _pwmPin, spd );
+  //delay(40);
 }
 
 void Noodle_DRV8838::halt() {

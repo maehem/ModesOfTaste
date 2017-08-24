@@ -17,7 +17,7 @@ class ModeKlepto
     void forward(int spd);  // 0-255
     void backward(int spd); // 0-255
     void halt();
-    boolean doState();  // Return > 0 if faulted.
+    int doState();  // Return > 0 if faulted.
     boolean isFaulted();
         
   private:

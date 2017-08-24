@@ -48,7 +48,7 @@ int ModeKlepto::getTicks() {
   return _mot.getTicks();
 }
 
-boolean ModeKlepto::doState() {
+int ModeKlepto::doState() {
   switch ( state ) {
     case STATE_INIT:
       delay(STATE_INITIAL_DELAY);
@@ -145,7 +145,7 @@ boolean ModeKlepto::doState() {
       delay(100);
       break;
   }
-  return isFaulted();
+  return state;
 }
 
 // Might not need these.

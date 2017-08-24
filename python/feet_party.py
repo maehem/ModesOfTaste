@@ -16,6 +16,7 @@ import json
 from twython import Twython
 import ConfigParser
 from os.path import expanduser
+import color-messages
 
 #debugTwitPhoto = True
 debugTwitPhoto = False
@@ -98,6 +99,7 @@ def takePicture():
     logger.info('photo snapped: ' + lastImageFile )
 
 def taste(val):
+    global lastRed, lastGreen, lastBlue
     global thereAreColors
     # log the color sensor value from the taste command
     ser.write('<lick>')

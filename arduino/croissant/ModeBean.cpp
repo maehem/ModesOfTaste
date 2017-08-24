@@ -11,7 +11,7 @@
 #define STATE_STOPPED  0
 #define STATE_FORWARD  1
 #define STATE_REVERSE  2
-#define STATE_FAULTED  3
+#define STATE_FAULTED  5
 
 #define STATE_DELAY    4*60*1000UL
 #define STATE_INITIAL_DELAY  3*60*1000UL
@@ -31,7 +31,7 @@ int ModeBean::begin() {
   delay(500);
 }
 
-boolean ModeBean::doState() {
+int ModeBean::doState() {
   switch ( state ) {
     case STATE_STOPPED:
       delay(3000);
@@ -57,5 +57,5 @@ boolean ModeBean::doState() {
       break;
   }
   //  After 5 times, rewind and do again.
-  return isFaulted();
+  return state;
 }

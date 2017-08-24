@@ -76,10 +76,11 @@
 
 
 int mode = 4;  // Overwritten once we read the mode pins.
+int state = 0;
 //ColorSensor cs = ColorSensor(CS_LED);
 
 ModeBean mBean(SERVO_PIN_A);
-ModeJuicer mJuicer(SERVO_PIN_A);
+ModeJuicer mJuicer(MOT_EN_PIN, MOT_NDIR_PIN, MOT_PWM_PIN, MOT_S1_PIN, MOT_S2_PIN, BUTTON_PIN);
 ModeKlepto mKlepto(MOT_EN_PIN, MOT_NDIR_PIN, MOT_PWM_PIN, MOT_S1_PIN, MOT_S2_PIN, SOLENOID_PIN);
 ModeLitmus mLitmus(MOT_EN_PIN, MOT_NDIR_PIN, MOT_PWM_PIN, MOT_S1_PIN, MOT_S2_PIN, SOLENOID_PIN);
 
@@ -108,6 +109,8 @@ void setup() {
     case MODE_KLEPTO:
       Serial.println("log Mode Klepto");
       tone(BEEP_PIN, NOTE_GS1, 1000);
+      
+      // Motor sensor interrupt setup
       cli();
       PCICR  |= 0b00000100; // Enables Port D Pin Change Interrupts
       PCMSK2 |= 0b10000000; // PCINT23  (Pin D7)
@@ -117,22 +120,32 @@ void setup() {
       break;
     case MODE_LITMUS:
       Serial.println("log Mode Litmus");
-      // Motor sensor interrupt setup
-      
       tone(BEEP_PIN, NOTE_GS2, 1000);
+      
+      // Motor sensor interrupt setup
       cli();
       PCICR  |= 0b00000100; // Enables Port D Pin Change Interrupts
       PCMSK2 |= 0b10000000; // PCINT23  (Pin D7)
       sei();
-      mLitmus.begin();
       
+      mLitmus.begin();     
       break;
     case MODE_JUICER:
       Serial.println("log Mode Juicer");
+      tone(BEEP_PIN, NOTE_GS2, 1000);
+      
+      // Motor sensor interrupt setup      
+      cli();
+      PCICR  |= 0b00000100; // Enables Port D Pin Change Interrupts
+      PCMSK2 |= 0b10000000; // PCINT23  (Pin D7)
+      sei();
+      
+      mJuicer.begin();
       tone(BEEP_PIN, NOTE_B2, 1000);
       break;
     case MODE_BEAN:
        Serial.println("log Mode Bean");
+       mBean.begin();
        tone(BEEP_PIN, NOTE_DS2, 1000);
      break;
   } 
@@ -141,30 +154,20 @@ void setup() {
 void loop() {
   switch (mode) {
     case MODE_KLEPTO:
-      if ( mKlepto.doState()) {
-        setLED(255,0,0); // Error state
-      } else {
-        setLED(0,255,0); // OK
-      }
-
-      //delay(5000);
+      state = mKlepto.doState();
       break;
     case MODE_LITMUS:
-      //mLitmus.doState();
-      if (mLitmus.doState()) {
-        setLED( 255, 0, 0 );
-      } else {
-        //digitalWrite(LED_PIN_R, 1);  // Normal return.
-        setLED( mLitmus.getRed(), mLitmus.getGreen(), mLitmus.getBlue() );
-        
-        
-      }
+      state = mLitmus.doState();
       break;
     case MODE_JUICER:
+      state = mJuicer.doState();
       break;
     case MODE_BEAN:
+      state = mBean.doState();
       break;
   }
+  
+  showState();  // Update the LED to reflect status.
 }
 
 void setLED( int r, int g, int b ) {
@@ -173,12 +176,46 @@ void setLED( int r, int g, int b ) {
   analogWrite( LED_PIN_B, 255-b );
 }
 
+void showState() {
+  switch (state) {
+    case 0:
+      analogWrite( LED_PIN_R, 255 );
+      analogWrite( LED_PIN_G, 0 );
+      analogWrite( LED_PIN_B, 255 );
+      break;
+    case 1:
+      analogWrite( LED_PIN_R, 0 );
+      analogWrite( LED_PIN_G, 0 );
+      analogWrite( LED_PIN_B, 255 );
+      break;
+    case 2:
+      analogWrite( LED_PIN_R, 255 );
+      analogWrite( LED_PIN_G, 255 );
+      analogWrite( LED_PIN_B, 0 );
+      break;
+    case 3:
+      analogWrite( LED_PIN_R, 0 );
+      analogWrite( LED_PIN_G, 255 );
+      analogWrite( LED_PIN_B, 0 );
+      break;
+    case 4:
+      analogWrite( LED_PIN_R, 128 );
+      analogWrite( LED_PIN_G, 255 );
+      analogWrite( LED_PIN_B, 128 );
+      break;
+    default:
+      analogWrite( LED_PIN_R, 0 );
+      analogWrite( LED_PIN_G, 255 );
+      analogWrite( LED_PIN_B, 255 );
+      break;      
+  }
+}
 
 ISR(PCINT2_vect)
 {
   mLitmus.tick();
   mKlepto.tick();
-//value++;
+  mJuicer.tick();
 }
 
 

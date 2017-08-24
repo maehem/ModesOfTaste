@@ -6,23 +6,26 @@
 // PiComm ?
 
 #include "Arduino.h"
+#include "Noodle_DRV8838.h"
 
-// PiComm
-#include <Servo.h>
 
 class ModeJuicer
 {
   public:
-    ModeJuicer(int servoPin);
+    ModeJuicer(int enPin, int dirPin, int pwmPin, int saPin, int sbPin, int buttonPin);
     int begin();
-    boolean doState();  // Return > 0 if faulted.
+    int doState();  // Return > 0 if faulted.
     boolean isFaulted();
+    void tick();  // Motor sensor turned.
     
   private:
-    int _servoPin;
+    void ModeJuicer::setForwardState();
+    Noodle_DRV8838 _mot;
     int state;
-    Servo servo;
-    boolean firstPass;
+    long watchdog;
+    int movTicks;
+    int rewindTicks;
+    int _buttonPin;
 };
 
 #endif

@@ -10,7 +10,7 @@ class ModeBean
   public:
     ModeBean(int servoPin);
     int begin();
-    boolean doState();  // Return > 0 if faulted.
+    int doState();  // Return > 0 if faulted.
     boolean isFaulted();
     
   private:
