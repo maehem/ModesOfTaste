@@ -16,16 +16,16 @@ import json
 from twython import Twython
 import ConfigParser
 from os.path import expanduser
-import color-messages
+import colormessages
 
 #debugTwitPhoto = True
 debugTwitPhoto = False
 
 #home = expanduser("~")
 home = expanduser("/home/pi")
-camera = PiCamera()
 logger = logging.getLogger('Feet Party')
 loggerFileName   = home + '/feetParty.log'
+
 tasteLogFileName = home + '/Desktop/tasteLog.txt'
 snapFilesDir     = home + '/Desktop/'
 thereAreColors = False
@@ -81,8 +81,8 @@ def initLogger():
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
     hdlr.setFormatter(formatter)
     logger.addHandler(hdlr)
-    logger.setLevel(logging.DEBUG)
-    logger.info("Logger running")
+    logger.setLevel(logging.INFO)
+    logger.info("----- Logger running ---------------------")
 
 def takePicture():
     global lastImageFile
@@ -98,7 +98,7 @@ def takePicture():
     ser.write('<tick>')
     logger.info('photo snapped: ' + lastImageFile )
 
-def taste(val):
+def taste(val1, val2, val3, val4):
     global lastRed, lastGreen, lastBlue
     global thereAreColors
     # log the color sensor value from the taste command
@@ -183,6 +183,11 @@ ser = serial.Serial(
 )
 logger.info("Pi serial port is: " + ser.name)
 
+try:
+    camera = PiCamera()
+except:
+    logger.warning("No camera plugged in.")
+
 checkInternetConnection()
 
 twitterInit()
@@ -218,7 +223,7 @@ while 1:
            takePicture()
         if word[0]=='taste':
             if len(word) > 1:
-                taste(word[1])
+                taste(word[1], word[2], word[3], word[4])
             else:
                 serial.write('error: no value for tasting!')
         if word[0]=='locate':
@@ -235,7 +240,7 @@ while 1:
                 publishPhoto()
                 thereArePictures = bool(0)
         else:
-            logger.info( "No pics to tweet var={0}".format(thereArePictures) )
+            logger.debug( "No pics to tweet var={0}".format(thereArePictures) )
                 
         if thereAreColors:
             thisHour = int(datetime.datetime.now().strftime('%H').format())
