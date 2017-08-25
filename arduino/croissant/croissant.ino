@@ -107,7 +107,8 @@ void setup() {
 
   switch (mode) {
     case MODE_KLEPTO:
-      Serial.println("log Mode Klepto");
+      Serial.println("mode Klepto");
+
       tone(BEEP_PIN, NOTE_GS1, 1000);
       
       // Motor sensor interrupt setup
@@ -119,7 +120,7 @@ void setup() {
 
       break;
     case MODE_LITMUS:
-      Serial.println("log Mode Litmus");
+      Serial.println("mode Litmus");
       tone(BEEP_PIN, NOTE_GS2, 1000);
       
       // Motor sensor interrupt setup
@@ -131,7 +132,7 @@ void setup() {
       mLitmus.begin();     
       break;
     case MODE_JUICER:
-      Serial.println("log Mode Juicer");
+      Serial.println("mode Juicer");
       tone(BEEP_PIN, NOTE_GS2, 1000);
       
       // Motor sensor interrupt setup      
@@ -144,7 +145,7 @@ void setup() {
       tone(BEEP_PIN, NOTE_B2, 1000);
       break;
     case MODE_BEAN:
-       Serial.println("log Mode Bean");
+       Serial.println("mode Bean");
        mBean.begin();
        tone(BEEP_PIN, NOTE_DS2, 1000);
      break;

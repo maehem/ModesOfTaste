@@ -29,7 +29,7 @@ class ModeLitmus
     int _solPin;
     ColorSensor _cs;
     Noodle_DRV8838 _mot;
-    int watchdog;
+    long watchdog;
     int movTicks;
     int state;
 };

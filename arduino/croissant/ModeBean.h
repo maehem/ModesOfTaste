@@ -17,7 +17,6 @@ class ModeBean
     int _servoPin;
     int state;
     Servo servo;
-    boolean firstPass;
 };
 
 #endif

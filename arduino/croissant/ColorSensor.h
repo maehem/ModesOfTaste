@@ -19,6 +19,8 @@ class ColorSensor
   private:
     int _clr, _red, _green, _blue;
     Adafruit_TCS34725 tcs;
+    // our RGB -> eye-recognized gamma color
+    byte gammatable[256];
 };
 
 #endif

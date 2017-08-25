@@ -2,6 +2,7 @@
 # Listen for commands on the serial line
 
 import socket
+import requests
 import logging
 import datetime
 import serial
@@ -18,6 +19,7 @@ import ConfigParser
 from os.path import expanduser
 import colormessages
 
+
 #debugTwitPhoto = True
 debugTwitPhoto = False
 
@@ -32,6 +34,11 @@ thereAreColors = False
 thereArePictures = False
 lastHour = 0
 
+# import the 'key' variable from the home directory.
+execfile(home + "/ip-key.py")
+
+#tweetHashTags = "#arselectronica17 #noodlefeet #tweetfeet"
+tweetHashTags = "#tweetfeet"
 
 Config = ConfigParser.ConfigParser()
 
@@ -98,15 +105,19 @@ def takePicture():
     ser.write('<tick>')
     logger.info('photo snapped: ' + lastImageFile )
 
-def taste(val1, val2, val3, val4):
-    global lastRed, lastGreen, lastBlue
+def taste(vr, vg, vb, vc):
+    global lastRed, lastGreen, lastBlue, lastClear
     global thereAreColors
     # log the color sensor value from the taste command
     ser.write('<lick>')
     f=open(tasteLogFileName,"a+")
-    f.write(timeStamp() + ':' + val + '\n')
+    f.write(timeStamp() + ':' + vr + ' '+ vg + ' ' + vb + ' ' + vc + '\n')
     thereAreColors = True
-    logger.info('color tasted: ' + val )
+    logger.info('color tasted: %d %d %d %d', vr,vg,vb,vc )
+    lastRed = vr
+    lastGreen = vg
+    lastBlue = vb
+    lastClear = vc
 
 #def whereAreMyFeet():
 #	f=open("~/google-map-api-key.txt", "r")
@@ -147,23 +158,64 @@ def whereAreMyFeet2():
 def publishPhoto():
     # Get a unique message from a list
     # add location with: whereAreMyFeet2()
-    message = "I'm testing my tweet-feet camera code! #tweetfeet"
+    message = "I'm testing my tweet-feet camera code! " + tweetHashTags
     twitterPostPic( message, lastImageFile )
     logger.info( 'twitter publish: ' + lastImageFile )
 
 def publishColor():
+    message = "I tasted a color!  R:" + lastRed + "  G:" + lastGreen + "  B:" + lastBlue + " " + tweetHashTags
+    # Generate a 4x4x4 cube with all the color names?
+    # or a list of known color range values and other colors are just unknown.
+    
     twitterPostText( message )
-    logger.info( 'twitter publish: ' + message )
+    logger.info( 'twitter publish: %s', message )
 
 def checkInternetConnection():
+    global myIP
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
-        socket.setdefaulttimeout(5)
-        socket.create_connection(('8.8.8.8',53))
+        #socket.setdefaulttimeout(5)
+        s.setdefaulttimeout(5)
+        #socket.create_connection(('8.8.8.8',53))
+        s.connect(('10.255.255.255', 1))
         haveNetwork = True
         logger.info( 'Network: connected to google' )
+        myIP = socket.getsockname()[0]
+        myIP = s.getsockname()[0]
     except socket.error as msg:
         haveNetwork = False
         logger.critical( 'Network: ' + msg )
+        IP = '127.0.0.1'
+    finally:
+        s.close()
+
+def recordIPAddress():
+    if ( haveNetwork ):
+        # push our IP address to the website
+
+        payload = {'key': ipkey, 'ip': myIP, 'mode': mode}
+
+        r = requests.post("http://maehem.com/arsFoo", data=payload)
+        #print(r.text)
+        logger.info("IP recorder: %s %s", response.status_code, response.reason) #HTTP
+
+#def get_ip():
+#    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+#    try:
+#        # doesn't even have to be reachable
+#        s.connect(('10.255.255.255', 1))
+#        IP = s.getsockname()[0]
+#    except:
+#        IP = '127.0.0.1'
+#    finally:
+#        s.close()
+#    return IP
+
+def cameraInit():
+    try:
+        camera = PiCamera()
+    except:
+        logger.warning("No camera plugged in.")
 
 def prompt():
     ser.write('\n\rnoodle> ')
@@ -183,10 +235,7 @@ ser = serial.Serial(
 )
 logger.info("Pi serial port is: " + ser.name)
 
-try:
-    camera = PiCamera()
-except:
-    logger.warning("No camera plugged in.")
+cameraInit()
 
 checkInternetConnection()
 
@@ -219,6 +268,14 @@ while 1:
             continue
 
         # if the command is 'snap' then call takePicture
+        if word[0]=='mode':
+            if len(word < 2):
+                mode = "Unknown Mode"
+                logger.warning("Unknown Mode registered!")
+            else:
+                mode = word[1]
+                logger.info( "Mode is: %s", mode)
+                recordIPAddress()
         if word[0]=='snap':
            takePicture()
         if word[0]=='taste':

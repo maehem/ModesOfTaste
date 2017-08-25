@@ -32,7 +32,18 @@ int ColorSensor::begin()
     while (1); // halt!
     // return 1;
   }
-
+  
+  // thanks PhilB for this gamma table!
+  // it helps convert RGB colors to what humans see
+  for (int i=0; i<256; i++) {
+    float x = i;
+    x /= 255;
+    x = pow(x, 2.5);
+    x *= 255;
+      
+    gammatable[i] = 255 - x;
+    //Serial.println(gammatable[i]);
+  }
 }
 
 void ColorSensor::led( boolean on)
@@ -56,9 +67,9 @@ void ColorSensor::look()
 
   led(false);  // turn off LED
 
-  _red = red;
-  _green = green;
-  _blue = blue;
+  //_red = red;
+  //_green = green;
+  //_blue = blue;
   _clr = clr;
   
 //  Serial.print("C:\t"); Serial.print(clr);
@@ -67,16 +78,25 @@ void ColorSensor::look()
 //  Serial.print("\tB:\t"); Serial.print(blue);
 
   // Figure out some basic hex code for visualization
-  //uint32_t sum = clr;
-  //float r, g, b;
-  //r = red; r /= sum;
-  //g = green; g /= sum;
-  //b = blue; b /= sum;
-  //r *= 256; g *= 256; b *= 256;
-  //Serial.print("\t");
-  //Serial.print((int)r, HEX); Serial.print((int)g, HEX); Serial.print((int)b, HEX);
-  //Serial.println();
+  uint32_t sum = clr;
+  float r, g, b;
+  r = red; r /= sum;
+  g = green; g /= sum;
+  b = blue; b /= sum;
+  r *= 256; g *= 256; b *= 256;
+//  Serial.print("\t");
+//  Serial.print((int)r, HEX); Serial.print((int)g, HEX); Serial.print((int)b, HEX);
+//  Serial.println();
 
+  //Serial.print((int)r ); Serial.print(" "); Serial.print((int)g);Serial.print(" ");  Serial.println((int)b );
+
+  _red =   gammatable[(int)r];
+  _green = gammatable[(int)g];
+  _blue =  gammatable[(int)b];
+  
+  //analogWrite(redpin, gammatable[(int)r]);
+  //analogWrite(greenpin, gammatable[(int)g]);
+  //analogWrite(bluepin, gammatable[(int)b]);
 }
 
 int ColorSensor::getRed() {

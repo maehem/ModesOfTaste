@@ -12,12 +12,18 @@
 
 #define STATE_INITIAL  0
 #define STATE_STOPPED  1
-#define STATE_FORWARD  2
-#define STATE_TASTING  3
+#define STATE_MASHING  2
+#define STATE_FORWARD  3
+#define STATE_TASTING  4
 #define STATE_FAULTED  5
 
 #define STATE_DELAY    4*60*1000UL
 #define STATE_INITIAL_DELAY  2*60*1000UL
+
+//debug
+//#define STATE_DELAY    10*1000UL
+//#define STATE_INITIAL_DELAY  5*1000UL
+
 
 ModeLitmus::ModeLitmus(int enPin, int dirPin, int pwmPin, int saPin, int sbPin, int solPin) {
   _mot = Noodle_DRV8838( enPin, dirPin, pwmPin, saPin, sbPin );
@@ -49,12 +55,29 @@ int ModeLitmus::doState() {
       Serial.println("log state: initial delay");
       delay(STATE_INITIAL_DELAY);
       state = STATE_STOPPED;
+      break;
+      
     case STATE_STOPPED:
+      Serial.println("log state: stopped");
+      delay(1000);
+      state = STATE_MASHING;
+      break;
+      
+    case STATE_MASHING:
+      Serial.println("log state: mash litmus paper");
+      
+      digitalWrite( _solPin, 1 );
+      delay(600);
+      digitalWrite( _solPin, 0 );
+      delay(600);
+      
       Serial.println("log state: forward");
       state = STATE_FORWARD;
-      _mot.forward(150);  // Speed is 0-255. Tick's start counting at 0.
-      watchdog = 10000;  // Watchdog
+      // backward is forward on this one.
+      _mot.backward(150);  // Speed is 0-255. Tick's start counting at 0.
+      watchdog = 30000;  // Watchdog
       movTicks = 1000;
+
       break;
     case STATE_FORWARD:
       //Serial.println( _mot.getTicks() );
@@ -74,12 +97,6 @@ int ModeLitmus::doState() {
       }
       break;
     case STATE_TASTING:
-      delay(1000);
-      
-      digitalWrite( _solPin, 1 );
-      delay(600);
-      digitalWrite( _solPin, 0 );
-      delay(600);
 
       //  Read color.  Dwell.  Foward.  Four times.
       //  Look at the color.
@@ -88,7 +105,7 @@ int ModeLitmus::doState() {
       _cs.look();
       _cs.led(false);
       //  Tell Pi the color.
-      Serial.print( "log color " );
+      Serial.print( "taste " );
       Serial.print( " " );
       Serial.print( _cs.getRed() );
       Serial.print( " " );
@@ -109,7 +126,7 @@ int ModeLitmus::doState() {
       // Next state
       Serial.println("log state: stopped");
       state = STATE_STOPPED;
-
+      delay(STATE_DELAY);
       break;
     case STATE_FAULTED:
     default:

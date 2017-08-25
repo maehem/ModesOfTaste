@@ -8,45 +8,51 @@
 
 #include "ModeBean.h"
 
-#define STATE_STOPPED  0
-#define STATE_FORWARD  1
-#define STATE_REVERSE  2
+#define STATE_INITIAL 0
+#define STATE_STOPPED  1
+#define STATE_FORWARD  2
+#define STATE_REVERSE  3
 #define STATE_FAULTED  5
 
-#define STATE_DELAY    4*60*1000UL
-#define STATE_INITIAL_DELAY  3*60*1000UL
+//#define STATE_DELAY    4*60*1000UL
+//#define STATE_INITIAL_DELAY  3*60*1000UL
+
+// debug
+#define STATE_DELAY    4*1000UL
+#define STATE_INITIAL_DELAY  3*1000UL
 
 ModeBean::ModeBean(int servoPin) {
   _servoPin = servoPin;
-  state = STATE_STOPPED;
-  firstPass = true;
-  
+  state = STATE_INITIAL;  
 }
 
 
 int ModeBean::begin() {
   servo.attach(_servoPin);
-  state = STATE_STOPPED;
-  firstPass = true;
-  delay(500);
+  servo.write(90);
+
+  delay(2000);
+  servo.write(68);
 }
 
 int ModeBean::doState() {
   switch ( state ) {
+    case STATE_INITIAL:
+      delay(STATE_INITIAL_DELAY);
+      break;
     case STATE_STOPPED:
-      delay(3000);
+      delay(1000);
       state = STATE_FORWARD;
       break;
     case STATE_FORWARD:
       Serial.println("log state: forward");
-      servo.write(45);
-      delay(5000);
+      servo.write(112);
+      delay(2000);
       state = STATE_REVERSE;
       break;
     case STATE_REVERSE:
-      servo.write(0);
-      firstPass ? delay( STATE_INITIAL_DELAY) : delay(STATE_DELAY);
-      firstPass = false;
+      servo.write(68);
+      delay(STATE_DELAY);
       state = STATE_STOPPED;
       break;
     case STATE_FAULTED:
