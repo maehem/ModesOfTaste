@@ -174,8 +174,7 @@ def checkInternetConnection():
     global myIP
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
-        #socket.setdefaulttimeout(5)
-        s.setdefaulttimeout(5)
+        socket.setdefaulttimeout(5)
         #socket.create_connection(('8.8.8.8',53))
         s.connect(('10.255.255.255', 1))
         haveNetwork = True
