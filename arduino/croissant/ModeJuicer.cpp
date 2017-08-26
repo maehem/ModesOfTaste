@@ -16,15 +16,15 @@
 #define STATE_FAULTED  5
 
 #define MOT_WATCHDOG 30000
-#define MOV_TICKS 1300
-#define MOT_SPEED 130
+#define MOV_TICKS 1200
+#define MOT_SPEED 150
 
-//#define STATE_DELAY    4*60*1000UL
-//#define STATE_INITIAL_DELAY  3*60*1000UL
+#define STATE_DELAY    4*60*1000UL
+#define STATE_INITIAL_DELAY  3*60*1000UL
 
 // debug values
-#define STATE_DELAY    4*1000UL
-#define STATE_INITIAL_DELAY  1*1000UL
+//#define STATE_DELAY    4*1000UL
+//#define STATE_INITIAL_DELAY  1*1000UL
 
 
 ModeJuicer::ModeJuicer(int enPin, int dirPin, int pwmPin, int saPin, int sbPin, int buttonPin) {

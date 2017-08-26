@@ -18,7 +18,7 @@
 //#define STATE_INITIAL_DELAY  3*60*1000UL
 
 // debug
-#define STATE_DELAY    4*1000UL
+#define STATE_DELAY    10*1000UL
 #define STATE_INITIAL_DELAY  3*1000UL
 
 ModeBean::ModeBean(int servoPin) {
@@ -29,34 +29,41 @@ ModeBean::ModeBean(int servoPin) {
 
 int ModeBean::begin() {
   servo.attach(_servoPin);
-  servo.write(90);
+  //servo.write(90);
+  servo.write(60);
 
   delay(2000);
-  servo.write(68);
 }
 
 int ModeBean::doState() {
   switch ( state ) {
     case STATE_INITIAL:
+      Serial.println("log state: initial");
       delay(STATE_INITIAL_DELAY);
+      state = STATE_STOPPED;
       break;
     case STATE_STOPPED:
-      delay(1000);
+      Serial.println("log state: stopped");
+      delay(2000);
       state = STATE_FORWARD;
       break;
     case STATE_FORWARD:
       Serial.println("log state: forward");
-      servo.write(112);
-      delay(2000);
+      servo.write(145);
+      delay(500);
       state = STATE_REVERSE;
       break;
     case STATE_REVERSE:
-      servo.write(68);
+      Serial.println("log state: reverse");
+      servo.write(56);
+      delay(60);
+      servo.write(62);
       delay(STATE_DELAY);
       state = STATE_STOPPED;
       break;
     case STATE_FAULTED:
     default:
+      Serial.println("log state: faulted");
       // How did we get here?
       // Flash RED LED.
       delay(100);
