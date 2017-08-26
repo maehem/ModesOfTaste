@@ -113,7 +113,7 @@ def taste(vr, vg, vb, vc):
     f=open(tasteLogFileName,"a+")
     f.write(timeStamp() + ':' + vr + ' '+ vg + ' ' + vb + ' ' + vc + '\n')
     thereAreColors = True
-    logger.info('color tasted: %d %d %d %d', vr,vg,vb,vc )
+    logger.info('color tasted: %s %s %s %s', vr,vg,vb,vc )
     lastRed = vr
     lastGreen = vg
     lastBlue = vb
@@ -196,9 +196,10 @@ def recordIPAddress():
 
         payload = {'key': ipkey, 'ip': myIP, 'mode': mode}
 
-        r = requests.post("http://maehem.com/arsFoo", data=payload)
+        r = requests.post("http://maehem.com/arsFoo/post.php", data=payload)
+        logger.info("IP recorder: %s", myIP )
         #print(r.text)
-        logger.info("IP recorder: %s %s", response.status_code, response.reason) #HTTP
+        logger.info("IP recorder: %s %s", r.status_code, r.reason) #HTTP
 
 #def get_ip():
 #    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -270,7 +271,7 @@ while 1:
 
         # if the command is 'snap' then call takePicture
         if word[0]=='mode':
-            if len(word < 2):
+            if len(word) < 2:
                 mode = "Unknown Mode"
                 logger.warning("Unknown Mode registered!")
             else:
