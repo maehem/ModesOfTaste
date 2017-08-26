@@ -17,7 +17,7 @@ import json
 from twython import Twython
 import ConfigParser
 from os.path import expanduser
-import colormessages
+#import colormessages
 
 
 #debugTwitPhoto = True
@@ -99,6 +99,7 @@ def initLogger():
 def takePicture():
     global lastImageFile
     global thereArePictures
+    global camera
     # take a picture with the camera
     # store the picture
     camera.start_preview()
@@ -223,6 +224,7 @@ def recordIPAddress():
 #    return IP
 
 def cameraInit():
+    global camera
     try:
         camera = PiCamera()
     except:
