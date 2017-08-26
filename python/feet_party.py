@@ -172,6 +172,8 @@ def publishColor():
 
 def checkInternetConnection():
     global myIP
+    global haveNetwork
+    
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         socket.setdefaulttimeout(5)
