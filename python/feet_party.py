@@ -42,6 +42,8 @@ tweetHashTags = "#tweetfeet"
 
 Config = ConfigParser.ConfigParser()
 
+lastMessage = ""
+
 def twitterInit():
     global twitter
     Config.read("/home/pi/twitter-config.ini")
@@ -62,8 +64,11 @@ def twitterPostPic(tweetStr, imageFile):
 
 def twitterPostText(tweetStr):
     global twitter
-    twitter.update_status(status=tweetStr)
-    logger.info( "Tweeted: " + tweetStr )
+    try:
+        twitter.update_status(status=tweetStr)
+        logger.info( "Tweeted: " + tweetStr )
+    except twython.exceptions.TwythonError:
+        logger.info("Tweet is a duplicate.")
 
 def ConfigSectionMap(section):
     dict1 = {}
@@ -163,12 +168,16 @@ def publishPhoto():
     logger.info( 'twitter publish: ' + lastImageFile )
 
 def publishColor():
+    global lastMessage
     message = "I tasted a color!  R:" + lastRed + "  G:" + lastGreen + "  B:" + lastBlue + " " + tweetHashTags
     # Generate a 4x4x4 cube with all the color names?
     # or a list of known color range values and other colors are just unknown.
-    
-    twitterPostText( message )
-    logger.info( 'twitter publish: %s', message )
+
+    # Twitter will reject duplicate tweet.
+    if ( lastMessage != message ): 
+        twitterPostText( message )
+        lastMessage = message
+        #logger.info( 'twitter publish: %s', message )
 
 def checkInternetConnection():
     global myIP
