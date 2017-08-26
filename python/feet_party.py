@@ -179,7 +179,7 @@ def checkInternetConnection():
         s.connect(('10.255.255.255', 1))
         haveNetwork = True
         logger.info( 'Network: connected to google' )
-        myIP = socket.getsockname()[0]
+        #myIP = socket.getsockname()[0]
         myIP = s.getsockname()[0]
     except socket.error as msg:
         haveNetwork = False
