@@ -317,9 +317,9 @@ while 1:
             thisMinute = int(datetime.datetime.now().strftime('%M').format())
             if ( lastHour != thisHour and thisMinute > 28 and thisMinute < 33 ):
                 lastHour = thisHour
-            logger.info('twitter: attempt to publish...')
-            publishColor()
-            thereAreColors = False
+                logger.info('twitter: attempt to publish...')
+                publishColor()
+                thereAreColors = False
 
     prompt()
     # end while section
