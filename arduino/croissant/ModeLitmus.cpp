@@ -22,7 +22,7 @@
 
 //debug
 //#define STATE_DELAY    10*1000UL
-//#define STATE_INITIAL_DELAY  5*1000UL
+//#define STATE_INITIAL_DELAY  15*1000UL
 
 
 ModeLitmus::ModeLitmus(int enPin, int dirPin, int pwmPin, int saPin, int sbPin, int solPin) {
@@ -101,7 +101,7 @@ int ModeLitmus::doState() {
       //  Read color.  Dwell.  Foward.  Four times.
       //  Look at the color.
       _cs.led(true);
-      delay(60);
+      delay(100);
       _cs.look();
       _cs.led(false);
       //  Tell Pi the color.
