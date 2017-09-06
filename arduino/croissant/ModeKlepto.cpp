@@ -19,8 +19,8 @@
 #define STATE_FAULTED  5
 
 // 2 minutes after a forward and 2 minutes after reverse
-#define STATE_DELAY    2*60*1000UL
-#define STATE_INITIAL_DELAY  1*60*1000UL
+#define STATE_DELAY    2*30*1000UL
+#define STATE_INITIAL_DELAY  1*30*1000UL
 
 // debug values
 //#define STATE_DELAY    4*1000UL

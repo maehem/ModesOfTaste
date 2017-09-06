@@ -19,8 +19,8 @@
 #define MOV_TICKS 1200
 #define MOT_SPEED 150
 
-#define STATE_DELAY    4*60*1000UL
-#define STATE_INITIAL_DELAY  3*60*1000UL
+#define STATE_DELAY    4*30*1000UL
+#define STATE_INITIAL_DELAY  3*30*1000UL
 
 // debug values
 //#define STATE_DELAY    4*1000UL

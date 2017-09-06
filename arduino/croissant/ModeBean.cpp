@@ -14,12 +14,12 @@
 #define STATE_REVERSE  3
 #define STATE_FAULTED  5
 
-//#define STATE_DELAY    4*60*1000UL
-//#define STATE_INITIAL_DELAY  3*60*1000UL
+#define STATE_DELAY    4*30*1000UL
+#define STATE_INITIAL_DELAY  3*30*1000UL
 
 // debug
-#define STATE_DELAY    10*1000UL
-#define STATE_INITIAL_DELAY  3*1000UL
+//#define STATE_DELAY    10*1000UL
+//#define STATE_INITIAL_DELAY  3*1000UL
 
 ModeBean::ModeBean(int servoPin) {
   _servoPin = servoPin;
