@@ -37,8 +37,8 @@ lastHour = 0
 # import the 'key' variable from the home directory.
 execfile(home + "/ip-key.py")
 
-#tweetHashTags = "#arselectronica17 #noodlefeet #tweetfeet"
-tweetHashTags = "#tweetfeet"
+tweetHashTags = "#arselectronica17 #noodlefeet #tweetfeet"
+#tweetHashTags = "#tweetfeet"
 
 Config = ConfigParser.ConfigParser()
 
@@ -164,7 +164,7 @@ def whereAreMyFeet2():
 def publishPhoto():
     # Get a unique message from a list
     # add location with: whereAreMyFeet2()
-    message = "I'm testing my tweet-feet camera code! " + tweetHashTags
+    message = "I'm at ARS Electronica in Linz, Austria! Here's a pic of something that might be in my mechanism. " + tweetHashTags
     twitterPostPic( message, lastImageFile )
     logger.info( 'twitter publish: ' + lastImageFile )
 
