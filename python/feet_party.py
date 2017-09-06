@@ -37,8 +37,8 @@ lastHour = 0
 # import the 'key' variable from the home directory.
 execfile(home + "/ip-key.py")
 
-#tweetHashTags = "#arselectronica17 #noodlefeet #tweetfeet"
-tweetHashTags = "#tweetfeet"
+tweetHashTags = "#ARSelectronica17 #noodlefeet #wanderingArtist"
+#tweetHashTags = "#tweetfeet"
 
 Config = ConfigParser.ConfigParser()
 
@@ -304,7 +304,8 @@ while 1:
 
         if thereArePictures:
             thisHour = datetime.datetime.now().strftime('%H').format()
-            if ( debugTwitPhoto or lastHour != thisHour ):
+            thisMinute = int(datetime.datetime.now().strftime('%M').format())
+            if ( lastHour != thisHour and thisMinute > 58 and thisMinute < 03 ):
                 lastHour = thisHour
                 logger.info('twitter: attempt to publish...')
                 publishPhoto()
