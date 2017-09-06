@@ -23,7 +23,7 @@ case "$1" in
   stop)
     echo "Stopping ModesOfTaste"
     # kill application you want to stop
-    killall feet_party.py
+    killall `python /home/pi/ModesOfTaste/python/feet_party.py'
     ;;
   *)
     echo "Usage: /etc/init.d/modes-of-taste {start|stop}"

@@ -37,7 +37,7 @@ lastHour = 0
 # import the 'key' variable from the home directory.
 execfile(home + "/ip-key.py")
 
-tweetHashTags = "#arselectronica17 #noodlefeet #tweetfeet"
+tweetHashTags = "#ARSelectronica17 #noodlefeet #wanderingArtist"
 #tweetHashTags = "#tweetfeet"
 
 Config = ConfigParser.ConfigParser()
@@ -164,7 +164,7 @@ def whereAreMyFeet2():
 def publishPhoto():
     # Get a unique message from a list
     # add location with: whereAreMyFeet2()
-    message = "I'm at ARS Electronica in Linz, Austria! Here's a pic of something that might be in my mechanism. " + tweetHashTags
+    message = "i'm at ARS Electronica in Linz ! look at what i just swallowed with my throat feet ! " + tweetHashTags
     twitterPostPic( message, lastImageFile )
     logger.info( 'twitter publish: ' + lastImageFile )
 
@@ -304,7 +304,8 @@ while 1:
 
         if thereArePictures:
             thisHour = datetime.datetime.now().strftime('%H').format()
-            if ( debugTwitPhoto or lastHour != thisHour ):
+            thisMinute = int(datetime.datetime.now().strftime('%M').format())
+            if ( lastHour != thisHour and thisMinute > 58 and thisMinute < 03 ):
                 lastHour = thisHour
                 logger.info('twitter: attempt to publish...')
                 publishPhoto()
@@ -317,9 +318,9 @@ while 1:
             thisMinute = int(datetime.datetime.now().strftime('%M').format())
             if ( lastHour != thisHour and thisMinute > 28 and thisMinute < 33 ):
                 lastHour = thisHour
-            logger.info('twitter: attempt to publish...')
-            publishColor()
-            thereAreColors = False
+                logger.info('twitter: attempt to publish...')
+                publishColor()
+                thereAreColors = False
 
     prompt()
     # end while section
