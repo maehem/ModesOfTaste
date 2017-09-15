@@ -79,7 +79,7 @@ int mode = 4;  // Overwritten once we read the mode pins.
 int state = 0;
 //ColorSensor cs = ColorSensor(CS_LED);
 
-ModeBean mBean(SERVO_PIN_A);
+ModeBean mBean(SERVO_PIN_A, BUTTON_PIN);
 ModeJuicer mJuicer(MOT_EN_PIN, MOT_NDIR_PIN, MOT_PWM_PIN, MOT_S1_PIN, MOT_S2_PIN, BUTTON_PIN);
 ModeKlepto mKlepto(MOT_EN_PIN, MOT_NDIR_PIN, MOT_PWM_PIN, MOT_S1_PIN, MOT_S2_PIN, SOLENOID_PIN);
 ModeLitmus mLitmus(MOT_EN_PIN, MOT_NDIR_PIN, MOT_PWM_PIN, MOT_S1_PIN, MOT_S2_PIN, SOLENOID_PIN);

@@ -10,9 +10,9 @@
 #include "ModeJuicer.h"
 
 #define STATE_INITIAL  0
-#define STATE_STOPPED  1
+#define STATE_STOPPED  3
 #define STATE_FORWARD  2
-#define STATE_REVERSE  3
+#define STATE_REVERSE  1
 #define STATE_FAULTED  5
 
 #define MOT_WATCHDOG 30000

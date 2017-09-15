@@ -21,8 +21,9 @@
 //#define STATE_DELAY    10*1000UL
 //#define STATE_INITIAL_DELAY  3*1000UL
 
-ModeBean::ModeBean(int servoPin) {
+ModeBean::ModeBean(int servoPin, int buttonPin ) {
   _servoPin = servoPin;
+  _buttonPin = buttonPin;
   state = STATE_INITIAL;  
 }
 
@@ -32,6 +33,15 @@ int ModeBean::begin() {
   //servo.write(90);
   servo.write(60);
 
+// Bean loading!
+  while( !digitalRead(_buttonPin) ) {
+      servo.write(145);
+      delay(500);
+      servo.write(56);
+      delay(60);
+      servo.write(62);
+      delay(1000);
+  }
   delay(2000);
 }
 
